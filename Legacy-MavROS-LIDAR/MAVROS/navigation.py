@@ -14,11 +14,14 @@ import tf
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import time
 
+# Define a global variable for the next state
 global NEXT_STATE
 NEXT_STATE = 'TAKEOFF'
 
+# Set printing options for NumPy arrays
 np.set_printoptions(threshold = np.inf)
 
+# Function to arm or disarm the UAV
 def arming_call(arm = False, time_delay = 5):
     rospy.loginfo("\n----------armingCall----------")
     rospy.wait_for_service("/mavros/cmd/arming")
@@ -26,6 +29,7 @@ def arming_call(arm = False, time_delay = 5):
     uav_arm(arm)
     rospy.sleep(time_delay)
 
+# Function to switch flight modes
 def switch_modes(next_mode, time_delay = 5):
     rospy.wait_for_service("/mavros/set_mode")
     modes = rospy.ServiceProxy("/mavros/set_mode",SetMode)
@@ -33,13 +37,15 @@ def switch_modes(next_mode, time_delay = 5):
     rospy.loginfo("\n----------mode:[%s]----------" % next_mode)
     rospy.sleep(time_delay)
 
+# Function to initiate takeoff
 def takeoff_call(lat, long, altitude, time_delay = 10):
     rospy.loginfo("\n----------takeoffCall----------")
     rospy.wait_for_service("/mavros/cmd/takeoff")
     takeoff = rospy.ServiceProxy("/mavros/cmd/takeoff", CommandTOL)
     takeoff(0, 0, lat, long, altitude)
     rospy.sleep(time_delay)
-    
+
+# Function to initiate landing
 def land_call(lat, long, altitude, time_delay = 30):
     rospy.loginfo("\n----------landCall----------")
     rospy.wait_for_service("/mavros/cmd/land")
@@ -47,6 +53,7 @@ def land_call(lat, long, altitude, time_delay = 30):
     land(0, 0, lat, long, altitude)
     rospy.sleep(time_delay)
 
+# Function to obtain objects detected by the lidar
 def get_objects(localposition, lidar):
     lidar_ranges = np.asarray(lidar.ranges)
     increment_angle = 2*np.pi/len(lidar_ranges)
@@ -64,6 +71,7 @@ def get_objects(localposition, lidar):
     objects_y = np.multiply(lidar_ranges, np.sin(absolute_angle)) + origin_to_drone_distance*np.sin(origin_to_drone_angle)
     return objects_x, objects_y
 
+# Function to check if the UAV has arrived at a target location
 def get_arrived_status(target, localposition, tolerance):
     target_x, target_y = target[0], target[1]
     delta_x, delta_y = target_x - localposition.pose.position.x, target_y - localposition.pose.position.y
@@ -74,11 +82,14 @@ def get_arrived_status(target, localposition, tolerance):
         ARRIVED_STATUS = False
     return ARRIVED_STATUS
 
+# Class for UAV navigation
 class navigation:
     def __init__(self, points_x, points_y, points_yaw, diameter):
+        # Initialize arrays to store block, travel, and path data
         self.block_x, self.block_y = np.array([]), np.array([])
         self.travel_x, self.travel_y = np.array([]), np.array([])
         
+        # Initialize navigation parameters
         self.points_x, self.points_y = points_x, points_y
         self.points_yaw = points_yaw
         self.point_index = 0
@@ -92,7 +103,8 @@ class navigation:
         self.time_1 = time.time()
         self.time_2 = time.time()
         self.TIMEOUT = 60
-        
+
+    # Function to reject circles in the lidar data
     def reject_circles(self, circle_x, circle_y, circle_status):
         for status_index, (x, y, status) in enumerate(zip(circle_x, circle_y, circle_status)):
             if status == True:
