@@ -13,6 +13,7 @@ class LIDAR:
         self.lidar = busio.UART(tx=board.GP12, rx=board.GP13, baudrate=115200)    #Define receiving interface of Lidar UART0
         
     def save_settings(self):
+        # Save Lidar settings
         print("\nSaving setting...")
         info_packet = [0x5a,0x04,0x11,0x6F]
         self.lidar.write(bytes(info_packet))
@@ -36,6 +37,7 @@ class LIDAR:
         return
     
     def getLidarDistance(self):
+        # Get Lidar distance data
         bin_ascii = bytearray()
         distance=0
         if self.lidar.in_waiting > 0:
@@ -48,4 +50,5 @@ class LIDAR:
     
     
     def getLidarDistanceInInch(self):
+        # Get Lidar distance in inches
         return (self.getLidarDistance() * 2.54)/10

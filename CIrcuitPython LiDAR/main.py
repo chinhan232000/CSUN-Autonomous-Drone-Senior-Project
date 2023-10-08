@@ -7,13 +7,16 @@ from adafruit_display_text import label
 from pixel import Pixel
 from Lidar_Class import LIDAR
 from Servo_Class import SERVO
-from Uart_Serial import UART_SERIAL
+from Uart_Serial import UART_SERIAL     # Assuming this is a custom UART class
+
 
 displayio.release_displays()
 
+# Get the board type
 board_type = os.uname().machine
 print(f"Board: {board_type}")
 
+# Configure pins for display communication
 clk_pin, mosi_pin, reset_pin, dc_pin, cs_pin = board.GP18, board.GP19, board.GP16, board.GP20, board.GP17
 spi = busio.SPI(clock=clk_pin, MOSI=mosi_pin)
 display_bus = displayio.FourWire(spi, command=dc_pin, chip_select=cs_pin, reset=reset_pin)
@@ -35,12 +38,13 @@ display.show(splash)
 
 my_list =[]
 
-#pixel Array
+# Create pixel objects and add them to the display
 for x in range(0, 90, 1): #range(start, end, step)
     pixel = Pixel(1, x+4, 45)
     my_list.append(pixel)
     splash.append(my_list[x].circle)
 
+# Create a label for displaying LIDAR data
 text_area = label.Label(terminalio.FONT, text="Ang:{} Dist:{}".format(0,0), color=0xFFFFFF)
 
 # set label position on the display
@@ -59,6 +63,7 @@ while True:
         index = 90 - ((int)(ang/2)+1)
         
         print(dist)
+        # Assuming you want to send the LIDAR data via UART
         #serial.message(dist)
         
         if dist < 100: #limit in cm

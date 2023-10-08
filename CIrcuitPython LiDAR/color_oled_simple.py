@@ -13,8 +13,10 @@ from pixel import Pixel
 from Lidar_Class import LIDAR
 from Servo_Class import SERVO
 
+# Release any previously allocated displays
 displayio.release_displays()
 
+# Detect the type of board and configure pins accordingly
 board_type = os.uname().machine
 print(f"Board: {board_type}")
 
@@ -26,12 +28,14 @@ else:
     mosi_pin, clk_pin, reset_pin, cs_pin, dc_pin = board.GP11, board.GP10, board.GP17, board.GP18, board.GP16
     print("This board is not supported. Change the pin definitions above.")
 
+# Initialize SPI and display
 spi = busio.SPI(clock=clk_pin, MOSI=mosi_pin)
 
 display_bus = displayio.FourWire(spi, command=dc_pin, chip_select=cs_pin, reset=reset_pin)
 
 display = SSD1331(display_bus, width=96, height=64)
 
+# Initialize LIDAR and servo
 lidar = LIDAR()
 lidar.set_samp_rate()
 lidar.save_settings()
@@ -44,6 +48,7 @@ display.show(splash)
 
 my_list =[]
 
+# Create a list of pixels
 for x in range(0, 90, 1): #range(start, end, step)
     pixel = Pixel(1, x+4, 45)
     my_list.append(pixel)
@@ -90,6 +95,8 @@ text_area.anchored_position = (1, 50)
 splash.append(text_area)
 ang = 0
 fw  = 1
+
+# Continuously update and display LIDAR data
 while True:
     dist = lidar.getLidarDistance()
     #time.sleep(0.1)

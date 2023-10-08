@@ -2,11 +2,13 @@ from machine import UART, Pin
 import utime
 from binascii import hexlify
 
+# Create a UART object for communication with the LIDAR sensor
 #lidar = UART(0, baudrate=115200, tx=Pin(16), rx=Pin(17))    #Define receiving interface of Lidar
 lidar = UART(0, baudrate=115200, tx=Pin(12), rx=Pin(13))    #Define receiving interface of Lidar UART0
 print(lidar)
 utime.sleep_ms(1000)
 
+# Define the LIDAR data packet structure
 """
 byte[0] = 0x59
 byte[1] = 0x59
@@ -21,9 +23,11 @@ total = byte[0]+byte[1]+byte[2]+byte[3]+byte[4]+byte[5]+byte[6]+byte[7]
 the lower 8 bits [LSB] of the total is the checksum 
 
 """
+# Default frame rate for LIDAR data (best tested at 115200)
 frame_rate = 20 # default at 20Hz (best tested at 115200)
 
 def save_settings():
+    # Save LIDAR settings
     print("\nSaving setting...")
     info_packet = [0x5a,0x04,0x11,0x6F]
     lidar.write(bytes(info_packet))
